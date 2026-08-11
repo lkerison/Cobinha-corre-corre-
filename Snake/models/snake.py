@@ -7,7 +7,7 @@ from configures import (
     TAMANHO_BLOCO,
     VERDE
 )
-
+ # essa classe pode ser abstrata
 class Snake:
     def __init__(self):
         self.corpo = [
