@@ -1,68 +1,60 @@
-import sys
 import pygame
-from configures import BRANCO, FPS, PRETO, TELA, clock
-from models.comida import Comida
-from models.snake import Snake
-from telas.game_over import tela_game_over
-from utils.desenho import desenhar_grade, mostrar_texto
+from configures import ALTURA, LARGURA, TAMANHO_BLOCO, TELA, VERDE
 
 
-def jogo():
-    snake = Snake()
-    comida = Comida()
+class Snake:
 
-    pontos = 0
-    velocidade_cobra = 8
-    tempo_movimento = 0
+    def __init__(self):
+        self.corpo = [
+            [LARGURA // 2, ALTURA // 2],
+            [LARGURA // 2 - TAMANHO_BLOCO, ALTURA // 2],
+            [LARGURA // 2 - (TAMANHO_BLOCO * 2), ALTURA // 2],
+        ]
 
-    while True:
-        dt = clock.tick(FPS)
-        tempo_movimento += dt
+        self.direcao = "RIGHT"
+        self.nova_direcao = self.direcao
+        self.crescer = False
 
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+    def mover(self):
+        self.direcao = self.nova_direcao
+        x, y = self.corpo[0]
 
-            if evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_UP and snake.direcao != "DOWN":
-                    snake.nova_direcao = "UP"
-                elif evento.key == pygame.K_DOWN and snake.direcao != "UP":
-                    snake.nova_direcao = "DOWN"
-                elif evento.key == pygame.K_LEFT and snake.direcao != "RIGHT":
-                    snake.nova_direcao = "LEFT"
-                elif evento.key == pygame.K_RIGHT and snake.direcao != "LEFT":
-                    snake.nova_direcao = "RIGHT"
+        if self.direcao == "UP":
+            y -= TAMANHO_BLOCO
+        elif self.direcao == "DOWN":
+            y += TAMANHO_BLOCO
+        elif self.direcao == "LEFT":
+            x -= TAMANHO_BLOCO
+        elif self.direcao == "RIGHT":
+            x += TAMANHO_BLOCO
 
+        nova_cabeca = [x, y]
+        self.corpo.insert(0, nova_cabeca)
 
-        if tempo_movimento >= 1000 / velocidade_cobra:
-            snake.mover()
-            tempo_movimento = 0
+        if not self.crescer:
+            self.corpo.pop()
+        else:
+            self.crescer = False
 
+    def desenhar(self):
+        for i, segmento in enumerate(self.corpo):
+            cor = VERDE if i == 0 else (0, 180, 0)
 
-            if snake.corpo[0] == comida.posicao:
-                snake.crescer = True
-                comida.posicao = comida.gerar_posicao()
-                pontos += 10
-                velocidade_cobra += 0.5
+            pygame.draw.rect(
+                TELA,
+                cor,
+                (segmento[0], segmento[1], TAMANHO_BLOCO, TAMANHO_BLOCO),
+            )
 
-    
-            if snake.verificar_colisao():
-                reiniciar = tela_game_over(pontos)
+    def verificar_colisao(self):
+        x, y = self.corpo[0]
 
-                if reiniciar:
+        # Colisão com as bordas da tela
+        if x < 0 or x >= LARGURA or y < 0 or y >= ALTURA:
+            return True
 
-                    snake = Snake()
-                    comida = Comida()
-                    pontos = 0
-                    velocidade_cobra = 8
-                else:
-                    return  
+        # Colisão com o próprio corpo
+        if self.corpo[0] in self.corpo[1:]:
+            return True
 
-        TELA.fill(PRETO)
-        desenhar_grade()
-        snake.desenhar()
-        comida.desenhar()
-        mostrar_texto(f"Pontos: {pontos}", BRANCO, 10, 10)
-
-        pygame.display.update()
+        return False
