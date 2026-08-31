@@ -125,7 +125,7 @@ def creditos():
             100
         )
         desenha_texto(
-            'desenvolvido por kerison',
+            'desenvolvido por',
             fonte_creditos,
             BRANCO,
             LARGURA //2,
