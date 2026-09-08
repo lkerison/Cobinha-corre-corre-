@@ -4,7 +4,7 @@ from configures import ALTURA, BRANCO, LARGURA, PRETO, TELA, VERDE, VERMELHO
 
 
 def desenha_texto_centralizado(texto, fonte, cor, y):
-    """Renderiza o texto centralizado horizontalmente na tela."""
+    
     superficie = fonte.render(texto, True, cor)
     retangulo = superficie.get_rect(center=(LARGURA // 2, y))
     TELA.blit(superficie, retangulo)
