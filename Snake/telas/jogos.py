@@ -49,11 +49,11 @@ class Snake:
     def verificar_colisao(self):
         x, y = self.corpo[0]
 
-        # Colisão com as bordas da tela
+        
         if x < 0 or x >= LARGURA or y < 0 or y >= ALTURA:
             return True
 
-        # Colisão com o próprio corpo
+        
         if self.corpo[0] in self.corpo[1:]:
             return True
 
