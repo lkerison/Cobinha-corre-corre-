@@ -1,10 +1,12 @@
 import pygame
 import sys
+from configures import ALTURA, BRANCO, LARGURA, PRETO, TELA, VERDE
+from telas.jogos import jogo
 
 pygame.init()
 TELA = pygame.display.set_mode((800, 600))
 
-# a tela do menu e as cores do dele 
+
 LARGURA = 800
 ALTURA = 600
 
@@ -54,6 +56,8 @@ def desenha_botao(texto, x , y , lagura, altura):
     return retangulo
 
 def menu():
+
+    
     while True:
         TELA.fill(PRETO)
 
