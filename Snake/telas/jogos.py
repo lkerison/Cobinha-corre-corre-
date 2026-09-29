@@ -9,14 +9,14 @@ from utils.desenho import desenhar_grade, mostrar_texto
 
 
 def desenha_texto_centralizado(texto, fonte, cor, y):
-    
+  
     superficie = fonte.render(texto, True, cor)
     retangulo = superficie.get_rect(center=(LARGURA // 2, y))
     TELA.blit(superficie, retangulo)
 
 
 def tela_transicao_fase(fase_concluida):
-    
+   
     pygame.event.clear()
     fonte_titulo = pygame.font.SysFont("Arial", 46, bold=True)
     fonte_instrucao = pygame.font.SysFont("Arial", 24, bold=True)
@@ -47,7 +47,7 @@ def tela_transicao_fase(fase_concluida):
 
 
 def tela_vitoria():
-    
+ 
     pygame.event.clear()
     fonte_titulo = pygame.font.SysFont("Arial", 46, bold=True)
     fonte_instrucao = pygame.font.SysFont("Arial", 24, bold=True)
@@ -87,8 +87,8 @@ def jogo():
     velocidade_cobra = 8
     tempo_movimento = 0
 
-   
-    META_FASE_1 = 5  
+  
+    META_FASE_1 = 5 
     META_FASE_2 = 7  
 
     while True:
@@ -118,44 +118,40 @@ def jogo():
 
             tempo_movimento = 0
 
-            
+   
             if snake.corpo[0] == comida.posicao:
                 snake.crescer = True
                 comida.posicao = comida.gerar_posicao(snake.corpo)
                 pontos += 1
                 velocidade_cobra += 0.5
 
-                
+
                 if fase == 1 and pontos >= META_FASE_1:
                     tela_transicao_fase(1)
                     fase = 2
-                    pontos = 0  
+                    pontos = 0 
                     velocidade_cobra = 10
                     snake = Snake()
                     comida = Comida()
 
-                
                 elif fase == 2 and pontos >= META_FASE_2:
                     tela_transicao_fase(2)
                     fase = 3
-                    pontos = 0  
+                    pontos = 0 
                     boss = Boss()
                     snake = Snake()
                     comida = Comida()
 
-                
                 elif fase == 3 and boss:
                     boss.vida -= 1
                     if boss.vida <= 0:
                         tela_vitoria()
                         return
 
-            
             colidiu_com_boss = (
                 fase == 3 and boss and boss.colidiu_com_cabeca(snake.corpo[0])
             )
 
-            
             if snake.verificar_colisao() or colidiu_com_boss:
                 reiniciar = tela_game_over(pontos)
 
@@ -169,7 +165,7 @@ def jogo():
                 else:
                     return
 
-        
+        # Desenhar elementos
         TELA.fill(PRETO)
         desenhar_grade()
         snake.desenhar()
