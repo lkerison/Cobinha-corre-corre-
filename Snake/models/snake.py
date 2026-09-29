@@ -1,19 +1,14 @@
 import pygame
+from configures import ALTURA, LARGURA, TAMANHO_BLOCO, TELA, VERDE
 
-from configures import (
-    TELA,
-    LARGURA,
-    ALTURA,
-    TAMANHO_BLOCO,
-    VERDE
-)
- # essa classe pode ser abstrata
+
 class Snake:
+
     def __init__(self):
         self.corpo = [
             [LARGURA // 2, ALTURA // 2],
             [LARGURA // 2 - TAMANHO_BLOCO, ALTURA // 2],
-            [LARGURA // 2 - (TAMANHO_BLOCO * 2), ALTURA // 2]
+            [LARGURA // 2 - (TAMANHO_BLOCO * 2), ALTURA // 2],
         ]
 
         self.direcao = "RIGHT"
@@ -22,7 +17,6 @@ class Snake:
 
     def mover(self):
         self.direcao = self.nova_direcao
-
         x, y = self.corpo[0]
 
         if self.direcao == "UP":
@@ -49,18 +43,16 @@ class Snake:
             pygame.draw.rect(
                 TELA,
                 cor,
-                (segmento[0], segmento[1], TAMANHO_BLOCO, TAMANHO_BLOCO)
+                (segmento[0], segmento[1], TAMANHO_BLOCO, TAMANHO_BLOCO),
             )
 
     def verificar_colisao(self):
-            x, y = self.corpo[0]
+        x, y = self.corpo[0]
 
+        if x < 0 or x >= LARGURA or y < 0 or y >= ALTURA:
+            return True
 
-            if x < 0 or x >= LARGURA or y < 0 or y >= ALTURA:
-                return True
+        if self.corpo[0] in self.corpo[1:]:
+            return True
 
-
-            if self.corpo[0] in self.corpo[1:]:
-                return True
-
-            return False        
+        return False
