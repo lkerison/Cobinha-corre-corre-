@@ -1,102 +1,187 @@
 import pygame
 import sys
-from configures import ALTURA, BRANCO, LARGURA, PRETO, TELA, VERDE
-from telas.jogos import jogo
+import os
 
-pygame.init()
-TELA = pygame.display.set_mode((800, 600))
-
-
-LARGURA = 800
-ALTURA = 600
-
-TELA = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption('snake game')
-
-clock = pygame.time.Clock()
-
-PRETO = (20, 20, 20)
-BRANCO = (255, 255, 255)
-VERDE = (50 , 200, 80)
-VERDE_CLARO = (100, 255, 120)
-CINZA = (80, 80, 80)
-CINZA_CLARO = (120, 120, 120)
-
-fonte_titulo = pygame.font.SysFont('Arial',60, bold=True)
-fonte_botao = pygame.font.SysFont('Arial',28, bold=True)
-fonte_creditos= pygame.font.SysFont('Arial',24)
-
-    
-def desenha_texto(texto, fonte,cor, x, y,):
-    superficie = fonte.render (texto,True, cor )
-    retangulo = superficie.get_rect(center=(x, y))
-    TELA.blit(superficie, retangulo)
+from configures import (
+    TELA,
+    LARGURA,
+    ALTURA,
+    BRANCO,
+    VERDE,
+    PRETO,
+    clock,
+    FPS,
+    fonte_creditos
+)
 
 
-def desenha_botao(texto, x , y , lagura, altura):
-    mouse = pygame.mouse.get_pos()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    retangulo = pygame.Rect(x, y, lagura, altura)
+PASTA_ASSETS = os.path.join(BASE_DIR, "assets")
+PASTA_SPRITES = PASTA_ASSETS
 
-    if retangulo.collidepoint(mouse):
-        cor = VERDE_CLARO
-    else:
-        cor = VERDE
 
-    pygame.draw.rect(TELA, cor, retangulo, border_radius=10)
-    pygame.draw.rect(TELA, BRANCO, retangulo, 2, border_radius=10)
+fundo = pygame.image.load(
+    os.path.join(PASTA_ASSETS, "fundo_menu.png")
+).convert()
 
-    desenha_texto(
-        texto,
-        fonte_botao,
-        PRETO,
-        retangulo.centerx,
-        retangulo.centery
+fundo = pygame.transform.scale(
+    fundo,
+    (LARGURA, ALTURA)
+)
+
+
+def carregar_sprite(nome):
+
+    caminho = os.path.join(
+        PASTA_SPRITES,
+        nome
     )
-    return retangulo
+
+    imagem = pygame.image.load(caminho).convert_alpha()
+
+    imagem = pygame.transform.smoothscale(
+        imagem,
+        (300, 95)
+    )
+
+    return imagem
+
+
+jogar_normal = carregar_sprite("jogar_normal.png")
+jogar_hover = carregar_sprite("jogar_hover.png")
+jogar_click = carregar_sprite("jogar_click.png")
+
+creditos_normal = carregar_sprite("creditos_normal.png")
+creditos_hover = carregar_sprite("creditos_hover.png")
+creditos_click = carregar_sprite("creditos_click.png")
+
+sair_normal = carregar_sprite("sair_normal.png")
+sair_hover = carregar_sprite("sair_hover.png")
+sair_click = carregar_sprite("sair_click.png")
+
+
+def desenha_texto(texto, fonte, cor, x, y):
+
+    superficie = fonte.render(
+        texto,
+        True,
+        cor
+    )
+
+    retangulo = superficie.get_rect(
+        center=(x, y)
+    )
+
+    TELA.blit(
+        superficie,
+        retangulo
+    )
+
+
+def desenhar_botao(
+    normal,
+    hover,
+    click,
+    x,
+    y,
+    mouse
+):
+
+    largura = normal.get_width()
+    altura = normal.get_height()
+
+    area = pygame.Rect(
+        x,
+        y,
+        largura,
+        altura
+    )
+
+    if area.collidepoint(mouse):
+
+        posicao_y = y - 8
+
+        TELA.blit(
+            hover,
+            (x, posicao_y)
+        )
+
+    else:
+
+        TELA.blit(
+            normal,
+            (x, y)
+        )
+
+    return area
+
 
 def menu():
 
-    
+    x = (LARGURA - 300) // 2
+
+    botao_jogar = pygame.Rect(
+        x,
+        275,
+        300,
+        95
+    )
+
+    botao_creditos = pygame.Rect(
+        x,
+        375,
+        300,
+        95
+    )
+
+    botao_sair = pygame.Rect(
+        x,
+        475,
+        300,
+        95
+    )
+
     while True:
-        TELA.fill(PRETO)
 
-        desenha_texto(
-            "SNAKE GAME",
-            fonte_titulo,
-            VERDE, 
-            LARGURA // 2,
-            120
+        TELA.blit(
+            fundo,
+            (0, 0)
         )
 
-        botao_iniciar = desenha_botao(
-            "INICIAL JOGO",
-            250,
-            220,
-            300,
-            60
+        mouse = pygame.mouse.get_pos()
+
+        desenhar_botao(
+            jogar_normal,
+            jogar_hover,
+            jogar_click,
+            x,
+            275,
+            mouse
         )
 
-
-        botao_creditos = desenha_botao(
-            'creditos',
-            250,
-            300,
-            300,
-            60
+        desenhar_botao(
+            creditos_normal,
+            creditos_hover,
+            creditos_click,
+            x,
+            375,
+            mouse
         )
 
-        botao_sair = desenha_botao(
-            'sair',
-            250,
-            380,
-            300,
-            60
+        desenhar_botao(
+            sair_normal,
+            sair_hover,
+            sair_click,
+            x,
+            475,
+            mouse
         )
-        
+
         for evento in pygame.event.get():
 
             if evento.type == pygame.QUIT:
+
                 pygame.quit()
                 sys.exit()
 
@@ -104,70 +189,133 @@ def menu():
 
                 if evento.button == 1:
 
-                    if botao_iniciar.collidepoint(evento.pos):
-                        return 'jogo'
+                    if botao_jogar.collidepoint(evento.pos):
+                        return "jogo"
 
-                    if botao_creditos.collidepoint(evento.pos):
-                        return 'creditos'
+                    elif botao_creditos.collidepoint(evento.pos):
+                        return "creditos"
 
-                    if botao_sair.collidepoint(evento.pos):
+                    elif botao_sair.collidepoint(evento.pos):
                         pygame.quit()
                         sys.exit()
+
         pygame.display.flip()
-        clock.tick(60) 
+
+        clock.tick(FPS)
+
 
 def creditos():
+
+    botao_voltar = pygame.Rect(
+        250,
+        430,
+        300,
+        60
+    )
+
     while True:
 
-        TELA.fill(PRETO)
+        TELA.blit(
+            fundo,
+            (0, 0)
+        )
+
+        camada = pygame.Surface(
+            (LARGURA, ALTURA),
+            pygame.SRCALPHA
+        )
+
+        camada.fill(
+            (0, 0, 0, 160)
+        )
+
+        TELA.blit(
+            camada,
+            (0, 0)
+        )
 
         desenha_texto(
-            'CREDITOS',
+            "CRÉDITOS",
             fonte_creditos,
             VERDE,
             LARGURA // 2,
             100
         )
+
         desenha_texto(
-            'desenvolvido por',
+            "DESENVOLVIDO POR",
             fonte_creditos,
             BRANCO,
-            LARGURA //2,
+            LARGURA // 2,
             220
         )
+
         desenha_texto(
-            'KERISON',
+            "KERISON",
             fonte_creditos,
             BRANCO,
-            LARGURA //2,
+            LARGURA // 2,
             270
         )
+
         desenha_texto(
-            'LUCAS',
+            "LUCAS",
             fonte_creditos,
             BRANCO,
-            LARGURA //2,
+            LARGURA // 2,
             310
         )
-        botao_voltar = desenha_botao(
-            'VOLTAR',
-            250,
-            430,
-            300,
-            60
+
+        mouse = pygame.mouse.get_pos()
+
+        if botao_voltar.collidepoint(mouse):
+
+            pygame.draw.rect(
+                TELA,
+                VERDE,
+                botao_voltar,
+                border_radius=10
+            )
+
+        else:
+
+            pygame.draw.rect(
+                TELA,
+                PRETO,
+                botao_voltar,
+                border_radius=10
+            )
+
+        pygame.draw.rect(
+            TELA,
+            BRANCO,
+            botao_voltar,
+            2,
+            border_radius=10
+        )
+
+        desenha_texto(
+            "VOLTAR",
+            fonte_creditos,
+            BRANCO,
+            botao_voltar.centerx,
+            botao_voltar.centery
         )
 
         for evento in pygame.event.get():
 
             if evento.type == pygame.QUIT:
+
                 pygame.quit()
                 sys.exit()
 
             if evento.type == pygame.MOUSEBUTTONDOWN:
 
-                    if evento.button == 1:
+                if evento.button == 1:
 
-                        if botao_voltar.collidepoint(evento.pos):
-                            return
+                    if botao_voltar.collidepoint(evento.pos):
+                        return
+
         pygame.display.flip()
-        clock.tick(60)                
+
+        clock.tick(FPS)
