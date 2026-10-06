@@ -50,15 +50,15 @@ def carregar_sprite(nome):
 
 jogar_normal = carregar_sprite("jogar_normal.png")
 jogar_hover = carregar_sprite("jogar_hover.png")
-jogar_click = carregar_sprite("jogar_click.png")
+jogar_click = carregar_sprite("jogar_clicado.png")
 
 creditos_normal = carregar_sprite("creditos_normal.png")
 creditos_hover = carregar_sprite("creditos_hover.png")
-creditos_click = carregar_sprite("creditos_click.png")
+creditos_click = carregar_sprite("creditos_clicado.png")
 
 sair_normal = carregar_sprite("sair_normal.png")
 sair_hover = carregar_sprite("sair_hover.png")
-sair_click = carregar_sprite("sair_click.png")
+sair_click = carregar_sprite("sair_clicado.png")
 
 
 def desenha_texto(texto, fonte, cor, x, y):
