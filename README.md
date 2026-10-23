@@ -1,1 +1,24 @@
 # Cobinha-corre-corre-
+
+o meu jogo vai ser sobre o jogo da cobrinha,mas não da forma padrão ele será um pouco modificado.
+
+TIPO DE JOGO: aventura
+AMBIENTE: será em uma espaço(sem ser no espaço sideral)
+IDEIA PRINCIPAL:é você tentar sobreviver e coletar as frutas e evitar não colidir com a parede ou com você mesmo.
+Objetivo do Jogo: coletar as frutas e sobre por mais tempo
+ 
+Personagem Principal: é uma cobra, terá pontuação e também ela se  movimenta
+
+Inimigos e Obstáculos: terá um boss e se ele te pegar você morrer;
+
+Sistema de Pontuação:cada maçã vale um ponto;
+
+Sistema de Vida: se o jogador bater ou na parede ou nele mesmo ele morrerá e terá que recomeçar a fase de novo
+
+Controles: serão as teclas W,A,D
+
+Fluxo do Jogo: o jogador depois que começa,vai aparecer uma maçã em um lugar aleatório no mapa e o jogador terá que pegar a maçã, e para ele poder ganhar ela terá que pegar um numero x de maçã e esse número vai aumentando conforme o jogador vai passando de fase.
+
+
+ATUALIZAÇOES DO NOSSO JOGO: ate agora temos os maps mais fizemos os mapas referente a um planeta volganico, estaçao espacial e campo de asteroides, tambem fzemos os boss que no momento n tem sprite mais ja ele ja esta feito.
+na minha pecepcao o jogo ja esta 60% feito, pois ainda falta fazer o resto das sprite e também colocar a sprite da cobra e do maps 
