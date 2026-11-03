@@ -88,6 +88,9 @@ fundo_fase1 = pygame.transform.scale(fundo_fase1, (LARGURA , ALTURA))
 fundo_fase2 = pygame.image.load(os.path.join(PASTA_FUNDO, "fase2.png")).convert()
 fundo_fase2 = pygame.transform.scale(fundo_fase2, (LARGURA, ALTURA))
 
+fundo_fase3 = pygame.image.load(os.path.join(PASTA_FUNDO, "fase3.png")).convert()
+fundo_fase3 = pygame.transform.scale(fundo_fase3, (LARGURA, ALTURA))
+
 def jogo():
     snake = Snake()
     comida = Comida()
@@ -185,6 +188,8 @@ def jogo():
             TELA.blit(fundo_fase1, (0, 0))
         elif fase == 2:
             TELA.blit(fundo_fase2, (0, 0))
+        elif fase == 3:
+            TELA.blit(fundo_fase3, (0, 0))
         desenhar_grade()
         snake.desenhar()
         comida.desenhar()
