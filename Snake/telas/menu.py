@@ -116,72 +116,123 @@ def desenhar_botao(
 
     return area
 
+class CobrinhaMenu:
+    def __init__(self):
+        self.segmentos = []
+
+        for i in range(12):
+            self.segmentos.append(
+                pygame.Vector2(150 - i * 14, 500)
+            )
+
+        self.direcao = pygame.Vector2(1, 0)
+
+    def atualizar(self, mouse):
+        alvo = pygame.Vector2(mouse)
+        diferenca = alvo - self.segmentos[0]
+
+        if diferenca.length() > 1:
+            self.direcao = diferenca.normalize()
+            distancia = min(6, diferenca.length())
+            self.segmentos[0] += self.direcao * distancia
+
+        for i in range(1, len(self.segmentos)):
+            diferenca = self.segmentos[i - 1] - self.segmentos[i]
+            distancia = diferenca.length()
+
+            if distancia > 14:
+                self.segmentos[i] += (
+                    diferenca.normalize() * (distancia - 14)
+                )
+
+    def desenhar(self, tela):
+        for i in range(len(self.segmentos) - 1, 0, -1):
+            posicao = self.segmentos[i]
+
+            cor = (30, 180, 100) if i % 2 == 0 else (50, 230, 130)
+
+            pygame.draw.circle(
+                tela,
+                cor,
+                (int(posicao.x), int(posicao.y)),
+                9
+            )
+
+        cabeca = self.segmentos[0]
+
+        pygame.draw.circle(
+            tela,
+            (80, 255, 150),
+            (int(cabeca.x), int(cabeca.y)),
+            14
+        )
+
+        perpendicular = pygame.Vector2(
+            -self.direcao.y,
+            self.direcao.x
+        )
+
+        for lado in [-1, 1]:
+            olho = cabeca + self.direcao * 5 + perpendicular * (lado * 6)
+
+            pygame.draw.circle(
+                tela,
+                (255, 255, 255),
+                (int(olho.x), int(olho.y)),
+                3
+            )
+
+            pygame.draw.circle(
+                tela,
+                (10, 20, 30),
+                (int(olho.x), int(olho.y)),
+                1
+            )
+
 
 def menu():
 
+    cobrinha = CobrinhaMenu()
     x = (LARGURA - 300) // 2
 
-    botao_jogar = pygame.Rect(
-        x,
-        275,
-        300,
-        95
-    )
-
-    botao_creditos = pygame.Rect(
-        x,
-        375,
-        300,
-        95
-    )
-
-    botao_sair = pygame.Rect(
-        x,
-        475,
-        300,
-        95
-    )
+    botao_jogar = pygame.Rect(x, 275, 300, 95)
+    botao_creditos = pygame.Rect(x, 375, 300, 95)
+    botao_sair = pygame.Rect(x, 475, 300, 95)
 
     while True:
 
-        TELA.blit(
-            fundo,
-            (0, 0)
-        )
+        TELA.blit(fundo, (0, 0))
 
         mouse = pygame.mouse.get_pos()
+
+        # Atualizar e desenhar a cobrinha
+        cobrinha.atualizar(mouse)
+        cobrinha.desenhar(TELA)
 
         desenhar_botao(
             jogar_normal,
             jogar_hover,
             jogar_click,
-            x,
-            275,
-            mouse
+            x, 275, mouse
         )
 
         desenhar_botao(
             creditos_normal,
             creditos_hover,
             creditos_click,
-            x,
-            375,
-            mouse
+            x, 375, mouse
         )
 
         desenhar_botao(
             sair_normal,
             sair_hover,
             sair_click,
-            x,
-            475,
-            mouse
+            x, 475, mouse
         )
 
         for evento in pygame.event.get():
 
             if evento.type == pygame.QUIT:
-
                 pygame.quit()
                 sys.exit()
 
@@ -200,8 +251,8 @@ def menu():
                         sys.exit()
 
         pygame.display.flip()
-
         clock.tick(FPS)
+
 
 
 def creditos():
@@ -267,6 +318,7 @@ def creditos():
         )
 
         mouse = pygame.mouse.get_pos()
+        
 
         if botao_voltar.collidepoint(mouse):
 
