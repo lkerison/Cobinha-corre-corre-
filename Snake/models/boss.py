@@ -15,33 +15,42 @@ class Boss:
         self.attack_state = "idle"
         self.telegraph_timer = 0
         self.timer = 0
+        self.tempo_entre_ataques = 90
+        self.duracao_telegraph = 18
+
+    def iniciar_telegraph(self):
+        self.attack_state = "telegraph"
+        self.telegraph_timer = self.duracao_telegraph
 
     def mover(self, alvo=None):
         self.timer += 1
         self.x += self.vel_x
         self.y += self.vel_y
 
-        if self.x <= 0 or self.x + self.tamanho >= LARGURA:
+        if self.x <= 40 or self.x + self.tamanho >= LARGURA - 40:
             self.vel_x *= -1
-        if self.y <= 0 or self.y + self.tamanho >= ALTURA:
+        if self.y <= 40 or self.y + self.tamanho >= ALTURA - 80:
             self.vel_y *= -1
-
-        if self.timer % 60 == 0:
-            self.attack_state = "telegraph"
-            self.telegraph_timer = 15
 
         if self.attack_state == "telegraph":
             self.telegraph_timer -= 1
             if self.telegraph_timer <= 0:
                 self.attack_state = "idle"
+                self.timer = 0
+                return
+
+        if self.timer >= self.tempo_entre_ataques:
+            self.iniciar_telegraph()
 
     def desenhar(self):
         if self.attack_state == "telegraph":
             cor_base = (255, 220, 90)
             contorno = (255, 180, 0)
+            brilho = 1 + abs((self.telegraph_timer % 8) - 4) * 0.15
         else:
             cor_base = VERMELHO
             contorno = VERMELHO_ESCURO
+            brilho = 1
 
         retangulo = pygame.Rect(self.x, self.y, self.tamanho, self.tamanho)
         sombra = pygame.Rect(self.x - 4, self.y - 4, self.tamanho + 8, self.tamanho + 8)
@@ -50,10 +59,14 @@ class Boss:
         pygame.draw.rect(TELA, cor_base, retangulo, border_radius=8)
         pygame.draw.rect(TELA, contorno, retangulo, width=3, border_radius=8)
 
+        if self.attack_state == "telegraph":
+            linha = pygame.Rect(self.x - 6, self.y - 6, self.tamanho + 12, self.tamanho + 12)
+            pygame.draw.rect(TELA, (255, 235, 150), linha, 2, border_radius=12)
+
         olho_1 = (self.x + self.tamanho * 0.3, self.y + self.tamanho * 0.35)
         olho_2 = (self.x + self.tamanho * 0.7, self.y + self.tamanho * 0.35)
-        pygame.draw.circle(TELA, (20, 20, 20), (int(olho_1[0]), int(olho_1[1])), 3)
-        pygame.draw.circle(TELA, (20, 20, 20), (int(olho_2[0]), int(olho_2[1])), 3)
+        pygame.draw.circle(TELA, (20, 20, 20), (int(olho_1[0]), int(olho_1[1])), max(2, int(3 * brilho)))
+        pygame.draw.circle(TELA, (20, 20, 20), (int(olho_2[0]), int(olho_2[1])), max(2, int(3 * brilho)))
 
         largura_barra = self.tamanho
         altura_barra = 6
