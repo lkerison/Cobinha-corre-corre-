@@ -15,6 +15,22 @@ class Snake:
         self.nova_direcao = self.direcao
         self.crescer = False
 
+    @staticmethod
+    def _direcao_oposta(direcao_atual, nova_direcao):
+        opostas = {
+            "UP": "DOWN",
+            "DOWN": "UP",
+            "LEFT": "RIGHT",
+            "RIGHT": "LEFT",
+        }
+        return opostas.get(direcao_atual) == nova_direcao
+
+    def definir_direcao(self, nova_direcao):
+        if nova_direcao in {"UP", "DOWN", "LEFT", "RIGHT"} and not self._direcao_oposta(
+            self.direcao, nova_direcao
+        ):
+            self.nova_direcao = nova_direcao
+
     def mover(self):
         self.direcao = self.nova_direcao
         x, y = self.corpo[0]
@@ -46,13 +62,26 @@ class Snake:
                 (segmento[0], segmento[1], TAMANHO_BLOCO, TAMANHO_BLOCO),
             )
 
-    def verificar_colisao(self):
+    
+    def verificar_colisao(self, limite_mapa=None):
         x, y = self.corpo[0]
 
+        cabeca = pygame.Rect(
+            x, y,
+            TAMANHO_BLOCO,
+            TAMANHO_BLOCO
+        )
+
+        # Colisão com as bordas da tela
         if x < 0 or x >= LARGURA or y < 0 or y >= ALTURA:
             return True
 
+        # Colisão com o próprio corpo
         if self.corpo[0] in self.corpo[1:]:
+            return True
+
+        # Colisão com as bordas do mapa
+        if limite_mapa and not limite_mapa.contains(cabeca):
             return True
 
         return False
