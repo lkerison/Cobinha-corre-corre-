@@ -1,221 +1,375 @@
-import os
-import sys
 import pygame
-from configures import BRANCO, FPS, LARGURA, PRETO, TELA, TAMANHO_BLOCO, VERDE, clock
-from models.boss import Boss
-from models.comida import Comida
-from models.snake import Snake
-from telas.game_over import tela_game_over
-from utils.desenho import desenhar_grade, mostrar_texto
-from configures import TELA, LARGURA, ALTURA
+import sys
+import os
+
+from configures import (
+    TELA,
+    LARGURA,
+    ALTURA,
+    BRANCO,
+    VERDE,
+    PRETO,
+    clock,
+    FPS,
+    fonte_creditos
+)
 
 
-def desenha_texto_centralizado(texto, fonte, cor, y):
-    """Auxiliar para exibir texto centralizado na tela."""
-    superficie = fonte.render(texto, True, cor)
-    retangulo = superficie.get_rect(center=(LARGURA // 2, y))
-    TELA.blit(superficie, retangulo)
-
-
-def tela_transicao_fase(fase_concluida):
-    """Tela intermediária que exige ação do jogador para avançar."""
-    pygame.event.clear()
-    fonte_titulo = pygame.font.SysFont("Arial", 46, bold=True)
-    fonte_instrucao = pygame.font.SysFont("Arial", 24, bold=True)
-
-    while True:
-        TELA.fill(PRETO)
-
-        desenha_texto_centralizado(
-            f"FASE {fase_concluida} CONCLUÍDA!", fonte_titulo, VERDE, 220
-        )
-        desenha_texto_centralizado(
-            "aperte ESPAÇO para passa de fase",
-            fonte_instrucao,
-            BRANCO,
-            340,
-        )
-
-        pygame.display.update()
-
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            if evento.type == pygame.KEYDOWN:
-                if evento.key in (pygame.K_SPACE, pygame.K_RETURN):
-                    return
-
-
-def tela_vitoria():
-    """Tela exibida ao derrotar o Boss final."""
-    pygame.event.clear()
-    fonte_titulo = pygame.font.SysFont("Arial", 46, bold=True)
-    fonte_instrucao = pygame.font.SysFont("Arial", 24, bold=True)
-
-    while True:
-        TELA.fill(PRETO)
-
-        desenha_texto_centralizado(
-            "VOCÊ DERROTOU O BOSS!", fonte_titulo, VERDE, 220
-        )
-        desenha_texto_centralizado(
-            "aperte ESPAÇO para voltar ao Menu",
-            fonte_instrucao,
-            BRANCO,
-            340,
-        )
-
-        pygame.display.update()
-
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            if evento.type == pygame.KEYDOWN:
-                if evento.key in (pygame.K_SPACE, pygame.K_RETURN):
-                    return
-
-#essa parte do codigo é referente a o fundo da fase#
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PASTA_FUNDO = os.path.join(BASE_DIR,"assets", "fundo")
 
-fundo_fase1 = pygame.image.load(os.path.join(PASTA_FUNDO,"fase1.png")).convert()
-fundo_fase1 = pygame.transform.scale(fundo_fase1, (LARGURA , ALTURA))
-
-fundo_fase2 = pygame.image.load(os.path.join(PASTA_FUNDO, "fase2.png")).convert()
-fundo_fase2 = pygame.transform.scale(fundo_fase2, (LARGURA, ALTURA))
-
-fundo_fase3 = pygame.image.load(os.path.join(PASTA_FUNDO, "fase3.png")).convert()
-fundo_fase3 = pygame.transform.scale(fundo_fase3, (LARGURA, ALTURA))
-
-def colisao_boss_com_snake(boss, snake):
-    if not boss or not snake:
-        return False
-
-    rect_boss = pygame.Rect(boss.x, boss.y, boss.tamanho, boss.tamanho)
-
-    for segmento in snake.corpo:
-        rect_segmento = pygame.Rect(segmento[0], segmento[1], TAMANHO_BLOCO, TAMANHO_BLOCO)
-        if rect_boss.colliderect(rect_segmento):
-            return True
-
-    return False
+PASTA_ASSETS = os.path.join(BASE_DIR, "assets")
+PASTA_SPRITES = PASTA_ASSETS
 
 
-def desenhar_hud(pontos, fase, boss=None):
-    painel = pygame.Rect(14, 14, 260, 62)
-    pygame.draw.rect(TELA, (18, 20, 26), painel, border_radius=10)
-    pygame.draw.rect(TELA, (120, 120, 120), painel, width=2, border_radius=10)
+fundo = pygame.image.load(
+    os.path.join(PASTA_ASSETS, "fundo_menu.png")
+).convert()
 
-    fonte = pygame.font.SysFont("Arial", 19, bold=True)
-    fonte_pequena = pygame.font.SysFont("Arial", 14, bold=True)
-
-    texto_pontos = fonte.render(f"PONTOS {pontos}", True, BRANCO)
-    texto_fase = fonte.render(f"FASE {fase}", True, VERDE)
-    TELA.blit(texto_pontos, (26, 25))
-    TELA.blit(texto_fase, (26, 46))
-
-    if boss:
-        vida = max(0, boss.vida)
-        texto_boss = fonte_pequena.render(f"BOSS {vida}/{boss.vida_maxima}", True, (255, 180, 60))
-        TELA.blit(texto_boss, (160, 46))
+fundo = pygame.transform.scale(
+    fundo,
+    (LARGURA, ALTURA)
+)
 
 
-def jogo():
-    configuracao_fases = {
-        1: {"meta": 4, "velocidade": 7, "fundo": fundo_fase1},
-        2: {"meta": 6, "velocidade": 9, "fundo": fundo_fase2},
-        3: {"meta": None, "velocidade": 11, "fundo": fundo_fase3},
-    }
+def carregar_sprite(nome):
 
-    def preparar_fase(nova_fase):
-        nonlocal snake, comida, boss, pontos, velocidade_cobra, fase
-        fase = nova_fase
-        snake = Snake()
-        comida = Comida()
-        velocidade_cobra = configuracao_fases[nova_fase]["velocidade"]
-        pontos = 0
-        boss = Boss() if nova_fase == 3 else None
+    caminho = os.path.join(
+        PASTA_SPRITES,
+        nome
+    )
 
-    def resetar_partida():
-        preparar_fase(1)
+    imagem = pygame.image.load(caminho).convert_alpha()
 
-    snake = Snake()
-    comida = Comida()
-    boss = None
+    imagem = pygame.transform.smoothscale(
+        imagem,
+        (300, 95)
+    )
 
-    pontos = 0
-    fase = 1
-    velocidade_cobra = configuracao_fases[1]["velocidade"]
-    tempo_movimento = 0
+    return imagem
+
+
+jogar_normal = carregar_sprite("jogar_normal.png")
+jogar_hover = carregar_sprite("jogar_hover.png")
+jogar_click = carregar_sprite("jogar_click.png")
+
+creditos_normal = carregar_sprite("creditos_normal.png")
+creditos_hover = carregar_sprite("creditos_hover.png")
+creditos_click = carregar_sprite("creditos_click.png")
+
+sair_normal = carregar_sprite("sair_normal.png")
+sair_hover = carregar_sprite("sair_hover.png")
+sair_click = carregar_sprite("sair_click.png")
+
+
+def desenha_texto(texto, fonte, cor, x, y):
+
+    superficie = fonte.render(
+        texto,
+        True,
+        cor
+    )
+
+    retangulo = superficie.get_rect(
+        center=(x, y)
+    )
+
+    TELA.blit(
+        superficie,
+        retangulo
+    )
+
+
+def desenhar_botao(
+    normal,
+    hover,
+    click,
+    x,
+    y,
+    mouse
+):
+
+    largura = normal.get_width()
+    altura = normal.get_height()
+
+    area = pygame.Rect(
+        x,
+        y,
+        largura,
+        altura
+    )
+
+    if area.collidepoint(mouse):
+
+        posicao_y = y - 8
+
+        TELA.blit(
+            hover,
+            (x, posicao_y)
+        )
+
+    else:
+
+        TELA.blit(
+            normal,
+            (x, y)
+        )
+
+    return area
+
+
+class CobrinhaMenu:
+    def __init__(self):
+        self.segmentos = []
+
+        for i in range(12):
+            self.segmentos.append(
+                pygame.Vector2(150 - i * 14, 500)
+            )
+
+        self.direcao = pygame.Vector2(1, 0)
+
+    def atualizar(self, mouse):
+        alvo = pygame.Vector2(mouse)
+        diferenca = alvo - self.segmentos[0]
+
+        if diferenca.length() > 1:
+            self.direcao = diferenca.normalize()
+            distancia = min(6, diferenca.length())
+            self.segmentos[0] += self.direcao * distancia
+
+        for i in range(1, len(self.segmentos)):
+            diferenca = self.segmentos[i - 1] - self.segmentos[i]
+            distancia = diferenca.length()
+
+            if distancia > 14:
+                self.segmentos[i] += (
+                    diferenca.normalize() * (distancia - 14)
+                )
+
+    def desenhar(self, tela):
+        for i in range(len(self.segmentos) - 1, 0, -1):
+            posicao = self.segmentos[i]
+
+            cor = (30, 180, 100) if i % 2 == 0 else (50, 230, 130)
+
+            pygame.draw.circle(
+                tela,
+                cor,
+                (int(posicao.x), int(posicao.y)),
+                9
+            )
+
+        cabeca = self.segmentos[0]
+
+        pygame.draw.circle(
+            tela,
+            (80, 255, 150),
+            (int(cabeca.x), int(cabeca.y)),
+            14
+        )
+
+        perpendicular = pygame.Vector2(
+            -self.direcao.y,
+            self.direcao.x
+        )
+
+        for lado in [-1, 1]:
+            olho = cabeca + self.direcao * 5 + perpendicular * (lado * 6)
+
+            pygame.draw.circle(
+                tela,
+                (255, 255, 255),
+                (int(olho.x), int(olho.y)),
+                3
+            )
+
+            pygame.draw.circle(
+                tela,
+                (10, 20, 30),
+                (int(olho.x), int(olho.y)),
+                1
+            )
+
+
+
+def menu():
+
+    cobrinha = CobrinhaMenu()
+    x = (LARGURA - 300) // 2
+
+    botao_jogar = pygame.Rect(x, 275, 300, 95)
+    botao_creditos = pygame.Rect(x, 375, 300, 95)
+    botao_sair = pygame.Rect(x, 475, 300, 95)
 
     while True:
-        dt = clock.tick(FPS)
-        tempo_movimento += dt
+
+        TELA.blit(fundo, (0, 0))
+
+        mouse = pygame.mouse.get_pos()
+
+        # Atualizar e desenhar a cobrinha
+        cobrinha.atualizar(mouse)
+        cobrinha.desenhar(TELA)
+
+        desenhar_botao(
+            jogar_normal,
+            jogar_hover,
+            jogar_click,
+            x, 275, mouse
+        )
+
+        desenhar_botao(
+            creditos_normal,
+            creditos_hover,
+            creditos_click,
+            x, 375, mouse
+        )
+
+        desenhar_botao(
+            sair_normal,
+            sair_hover,
+            sair_click,
+            x, 475, mouse
+        )
 
         for evento in pygame.event.get():
+
             if evento.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
-            if evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_UP:
-                    snake.definir_direcao("UP")
-                elif evento.key == pygame.K_DOWN:
-                    snake.definir_direcao("DOWN")
-                elif evento.key == pygame.K_LEFT:
-                    snake.definir_direcao("LEFT")
-                elif evento.key == pygame.K_RIGHT:
-                    snake.definir_direcao("RIGHT")
+            if evento.type == pygame.MOUSEBUTTONDOWN:
 
-        if tempo_movimento >= 1000 / velocidade_cobra:
-            snake.mover()
+                if evento.button == 1:
 
-            if fase == 3 and boss:
-                boss.mover(snake.corpo[0])
+                    if botao_jogar.collidepoint(evento.pos):
+                        return "jogo"
 
-            tempo_movimento = 0
+                    elif botao_creditos.collidepoint(evento.pos):
+                        return "creditos"
 
-            if snake.corpo[0] == comida.posicao:
-                snake.crescer = True
-                comida.posicao = comida.gerar_posicao(snake.corpo)
-                pontos += 1
-                velocidade_cobra = min(velocidade_cobra + 0.2, 14)
+                    elif botao_sair.collidepoint(evento.pos):
+                        pygame.quit()
+                        sys.exit()
 
-                if fase == 1 and pontos >= configuracao_fases[1]["meta"]:
-                    tela_transicao_fase(1)
-                    preparar_fase(2)
+        pygame.display.flip()
+        clock.tick(FPS)
 
-                elif fase == 2 and pontos >= configuracao_fases[2]["meta"]:
-                    tela_transicao_fase(2)
-                    preparar_fase(3)
 
-                elif fase == 3 and boss:
-                    boss.vida -= 1
-                    if boss.vida <= 0:
-                        tela_vitoria()
+
+def creditos():
+
+    botao_voltar = pygame.Rect(
+        250,
+        430,
+        300,
+        60
+    )
+
+    while True:
+
+        TELA.blit(
+            fundo,
+            (0, 0)
+        )
+
+        camada = pygame.Surface(
+            (LARGURA, ALTURA),
+            pygame.SRCALPHA
+        )
+
+        camada.fill(
+            (0, 0, 0, 160)
+        )
+
+        TELA.blit(
+            camada,
+            (0, 0)
+        )
+
+        desenha_texto(
+            "CRÉDITOS",
+            fonte_creditos,
+            VERDE,
+            LARGURA // 2,
+            100
+        )
+
+        desenha_texto(
+            "DESENVOLVIDO POR",
+            fonte_creditos,
+            BRANCO,
+            LARGURA // 2,
+            220
+        )
+
+        desenha_texto(
+            "KERISON",
+            fonte_creditos,
+            BRANCO,
+            LARGURA // 2,
+            270
+        )
+
+        desenha_texto(
+            "LUCAS",
+            fonte_creditos,
+            BRANCO,
+            LARGURA // 2,
+            310
+        )
+
+        mouse = pygame.mouse.get_pos()
+        
+
+        if botao_voltar.collidepoint(mouse):
+
+            pygame.draw.rect(
+                TELA,
+                VERDE,
+                botao_voltar,
+                border_radius=10
+            )
+
+        else:
+
+            pygame.draw.rect(
+                TELA,
+                PRETO,
+                botao_voltar,
+                border_radius=10
+            )
+
+        pygame.draw.rect(
+            TELA,
+            BRANCO,
+            botao_voltar,
+            2,
+            border_radius=10
+        )
+
+        desenha_texto(
+            "VOLTAR",
+            fonte_creditos,
+            BRANCO,
+            botao_voltar.centerx,
+            botao_voltar.centery
+        )
+
+        for evento in pygame.event.get():
+
+            if evento.type == pygame.QUIT:
+
+                pygame.quit()
+                sys.exit()
+
+            if evento.type == pygame.MOUSEBUTTONDOWN:
+
+                if evento.button == 1:
+
+                    if botao_voltar.collidepoint(evento.pos):
                         return
 
-            colidiu_com_boss = fase == 3 and colisao_boss_com_snake(boss, snake)
+        pygame.display.flip()
 
-            if snake.verificar_colisao() or colidiu_com_boss:
-                reiniciar = tela_game_over(pontos)
-
-                if reiniciar:
-                    resetar_partida()
-                else:
-                    return
-
-        TELA.blit(configuracao_fases[fase]["fundo"], (0, 0))
-        desenhar_grade()
-        snake.desenhar()
-        comida.desenhar()
-
-        if fase == 3 and boss:
-            boss.desenhar()
-
-        desenhar_hud(pontos, fase, boss)
-        pygame.display.update()
+        clock.tick(FPS)
