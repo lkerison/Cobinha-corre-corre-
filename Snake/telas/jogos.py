@@ -105,23 +105,51 @@ def colisao_boss_com_snake(boss, snake):
     return False
 
 
+
 def desenhar_hud(pontos, fase, boss=None):
-    painel = pygame.Rect(14, 14, 260, 62)
-    pygame.draw.rect(TELA, (18, 20, 26), painel, border_radius=10)
-    pygame.draw.rect(TELA, (120, 120, 120), painel, width=2, border_radius=10)
+    painel = pygame.Surface((300, 34), pygame.SRCALPHA)
 
-    fonte = pygame.font.SysFont("Arial", 19, bold=True)
-    fonte_pequena = pygame.font.SysFont("Arial", 14, bold=True)
+    pygame.draw.rect(
+        painel,
+        (10, 15, 25, 175),
+        (0, 0, 300, 34),
+        border_radius=10
+    )
 
-    texto_pontos = fonte.render(f"PONTOS {pontos}", True, BRANCO)
-    texto_fase = fonte.render(f"FASE {fase}", True, VERDE)
-    TELA.blit(texto_pontos, (26, 25))
-    TELA.blit(texto_fase, (26, 46))
+    pygame.draw.rect(
+        painel,
+        (100, 150, 190, 180),
+        (0, 0, 300, 34),
+        width=1,
+        border_radius=10
+    )
+
+    fonte = pygame.font.SysFont("Arial", 16, bold=True)
+
+    texto = f"PONTOS: {pontos}   |   FASE: {fase}"
 
     if boss:
-        vida = max(0, boss.vida)
-        texto_boss = fonte_pequena.render(f"BOSS {vida}/{boss.vida_maxima}", True, (255, 180, 60))
-        TELA.blit(texto_boss, (160, 46))
+        texto += f"   |   BOSS: {max(0, boss.vida)}"
+
+    superficie = fonte.render(texto, True, BRANCO)
+
+    retangulo = superficie.get_rect(
+        center=(150, 17)
+    )
+
+    painel.blit(superficie, retangulo)
+
+    TELA.blit(
+        painel,
+        ((LARGURA - 300) // 2, 3)
+    )
+
+
+limites_fases = {
+ 1: pygame.Rect(40, 40, 720, 520),
+ 2: pygame.Rect(40, 40, 720, 520),
+ 3: pygame.Rect(60, 40, 680, 520),
+}
 
 
 def jogo():
@@ -135,7 +163,7 @@ def jogo():
         nonlocal snake, comida, boss, pontos, velocidade_cobra, fase
         fase = nova_fase
         snake = Snake()
-        comida = Comida()
+        comida = Comida(limite_mapa=limites_fases[nova_fase], obstaculos=[])
         velocidade_cobra = configuracao_fases[nova_fase]["velocidade"]
         pontos = 0
         boss = Boss() if nova_fase == 3 else None
@@ -144,9 +172,8 @@ def jogo():
         preparar_fase(1)
 
     snake = Snake()
-    comida = Comida()
+    comida = Comida(limite_mapa=limites_fases[1], obstaculos=[])
     boss = None
-
     pontos = 0
     fase = 1
     velocidade_cobra = configuracao_fases[1]["velocidade"]
@@ -182,6 +209,9 @@ def jogo():
             if snake.corpo[0] == comida.posicao:
                 snake.crescer = True
                 comida.posicao = comida.gerar_posicao(snake.corpo)
+                if comida.posicao is None:
+                    tela_vitoria()
+                    return
                 pontos += 1
                 velocidade_cobra = min(velocidade_cobra + 0.2, 14)
 
@@ -201,13 +231,15 @@ def jogo():
 
             colidiu_com_boss = fase == 3 and colisao_boss_com_snake(boss, snake)
 
-            if snake.verificar_colisao() or colidiu_com_boss:
+            limite_mapa = limites_fases[fase]
+
+            if snake.verificar_colisao(limite_mapa) or colidiu_com_boss:
                 reiniciar = tela_game_over(pontos)
 
                 if reiniciar:
-                    resetar_partida()
+                  resetar_partida()
                 else:
-                    return
+                     return
 
         TELA.blit(configuracao_fases[fase]["fundo"], (0, 0))
         desenhar_grade()
